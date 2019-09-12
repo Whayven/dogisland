@@ -13,11 +13,22 @@ router.get('/', async (req, res) => {
     }
 })
 
+//Get random dogs
+router.get('/candidates', async (req, res) => {
+    try {
+        const dogs = await loadDogCollection();
+        res.send(await dogs.find({"candidate": true}).toArray());
+    } catch (e) {
+        console.log(e);
+    }
+})
+
 router.post('/', async (req, res) => {
     try {
         const dogs = await loadDogCollection();
         await dogs.insertOne({
-            breed: req.body.text
+            breed: req.body.text,
+            score: 0
         });
         res.status(201).send('Dog added');
     } catch (e) {
@@ -61,5 +72,6 @@ async function loadDogCollection() {
     }
 
 }
+
 
 module.exports = router;
