@@ -4,10 +4,12 @@ const mongodb = require('mongodb').MongoClient;
 const router = express.Router();
 var ObjectID = require('mongodb').ObjectID;
 //Get Dogs
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, dogs) => {
     try {
         const dogs = await loadDogCollection();
-        res.send(await dogs.find({}).toArray());
+        const dogCollection = dogs.db('dogisland').collection('dogs');
+        res.send(await dogCollection.find({}).toArray());
+        dogs.close();
     } catch (e) {
         console.log(e);
     }
@@ -17,7 +19,9 @@ router.get('/', async (req, res) => {
 router.get('/candidates', async (req, res) => {
     try {
         const dogs = await loadDogCollection();
-        res.send(await dogs.find({"candidate": true}).toArray());
+        const dogCollection = dogs.db('dogisland').collection('dogs');
+        res.send(await dogCollection.find({"candidate": true}).toArray());
+        dogs.close();
     } catch (e) {
         console.log(e);
     }
@@ -26,11 +30,13 @@ router.get('/candidates', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const dogs = await loadDogCollection();
-        await dogs.insertOne({
+        const dogCollection = dogs.db('dogisland').collection('dogs');
+        await dogCollection.insertOne({
             breed: req.body.text,
             score: 0
         });
         res.status(201).send('Dog added');
+        dogs.close();
     } catch (e) {
         console.log(e);
     }
@@ -39,10 +45,12 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const dogs = await loadDogCollection();
-        await dogs.updateOne({ _id: new ObjectID(req.params.id) }, {
+        const dogCollection = dogs.db('dogisland').collection('dogs');
+        await dogCollection.updateOne({ _id: new ObjectID(req.params.id) }, {
             $inc: { score: 1 }
         })
         res.status(200).send('Updated');
+        dogs.close();
     } catch (e) {
         console.log(e);
     }
@@ -52,10 +60,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const dogs = await loadDogCollection();
-        await dogs.deleteOne({
+        const dogCollection = dogs.db('dogisland').collection('dogs');
+        await dogCollection.deleteOne({
             _id: new ObjectID(req.params.id)
         });
         res.status(200).send('Dog deleted');
+        dogs.close();
     } catch (e) {
         console.log(e);
     }
@@ -64,9 +74,10 @@ router.delete('/:id', async (req, res) => {
 async function loadDogCollection() {
     try {
         const client = await mongodb.connect('mongodb+srv://dogAdmin:dogs43v3r@cluster0-o3njd.mongodb.net/test?retryWrites=true&w=majority', {
-            useNewUrlParser: true
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         });
-        return client.db('dogisland').collection('dogs');
+        return client;
     } catch (e) {
         console.log(e);
     }
