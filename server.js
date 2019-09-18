@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');
+// const cors = require('cors');
 
 const app = express();
 
@@ -9,9 +9,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-const dogs = require('./routes/dogs');
+const dogs = require('./routes/api/dogs');
 
-app.use('/dogs', dogs);
+app.use('/api/dogs', dogs);
+
+// Handle Production
+// Static Folder
+app.use(express.static(__dirname + '/public'));
+// Handle SPA
+app.get(/.*/, (req, res) => res.sendFile(__dirname + '/public/index.html'));
+
 
 const port = process.env.PORT || 5000;
 
