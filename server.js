@@ -1,17 +1,29 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-// const cors = require('cors');
+const passport = require('passport');
+const cookieSession = require('cookie-session');
 
 const app = express();
+
+require('./config/passport')(passport);
 
 //Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cookieSession({
+  name: 'mysession',
+  keys: ['vueauthrandomkey'],
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
+app.use(passport.initialize());
+app.use(passport.session());
 
-const dogs = require('./routes/api/dogs');
 
-app.use('/api/dogs', dogs);
+//Routes
+app.use('/api/index', require('./routes/api/index'));
+app.use('/api/dogs', require('./routes/api/dogs'));
+app.use('/api/users', require('./routes/api/users'));
+
 
 // Handle Production
 // Static Folder
